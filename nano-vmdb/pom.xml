@@ -21,7 +21,7 @@
 
     <groupId>com.nano.vou</groupId>
     <artifactId>nano-vmdb</artifactId>
-    <version>0.0.2</version>
+    <version>0.0.2-SNAPSHOT</version>
     <packaging>war</packaging>
     <name>WildFly Quickstarts: nano-vmdb</name>
     <description>A starter Java EE 7 webapp project for use on JBoss WildFly / WildFly, generated from the jboss-javaee6-webapp archetype</description>
