@@ -233,10 +233,10 @@
                 <artifactId>wildfly-maven-plugin</artifactId>
                 <version>${version.wildfly.maven.plugin}</version>
                 <configuration>
-		      		<hostname>localhost</hostname>
-		      		<port>19990</port>
-		      		<username>seamfixadmin</username>
-		     		<password>*s3amf1x#</password>
+		      		<hostname>${wildfly.hostname}</hostname>
+					<port>${wildfly.port}</port>
+					<username>${wildfly.username}</username>
+					<password>${wildfly.password}</password>
 		     		<filename>vmdb.war</filename>
 		      	</configuration>
 		      	<executions>
