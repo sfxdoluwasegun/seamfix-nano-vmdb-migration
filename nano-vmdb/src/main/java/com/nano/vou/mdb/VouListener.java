@@ -7,6 +7,7 @@ import javax.jms.MapMessage;
 import javax.jms.Message;
 import javax.jms.MessageListener;
 
+import org.jboss.ejb3.annotation.ClusteredSingleton;
 import org.jboss.ejb3.annotation.ResourceAdapter;
 import org.jboss.logging.Logger;
 
@@ -24,6 +25,7 @@ import com.nano.vou.mdb.handlers.VouHandler;
  * @author segz
  */
 
+@ClusteredSingleton
 @ResourceAdapter(value = "activemq")
 @MessageDriven(mappedName = "queue/Vou", activationConfig = {
 		@ActivationConfigProperty(propertyName = "destinationType", propertyValue = "javax.jms.Queue"), 
