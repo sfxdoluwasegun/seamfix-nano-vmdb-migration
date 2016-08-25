@@ -2,6 +2,7 @@ package com.nano.vou.tools;
 
 import java.math.BigDecimal;
 import java.sql.Timestamp;
+import java.time.LocalDateTime;
 import java.util.Calendar;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -35,6 +36,7 @@ import com.nano.jpa.entity.SubscriberHistory_;
 import com.nano.jpa.entity.SubscriberState;
 import com.nano.jpa.entity.SubscriberState_;
 import com.nano.jpa.entity.Subscriber_;
+import com.nano.jpa.entity.ras.SubscriberAssessment;
 import com.nano.jpa.enums.ActiveStatus;
 import com.nano.jpa.enums.LoanIndicator;
 import com.nano.jpa.enums.PayType;
@@ -288,6 +290,23 @@ public class QueryManager {
 		subscriber.setMsisdn(formatMisisdn(msisdn));
 
 		return (Subscriber) create(subscriber);
+	}
+	
+	/**
+	 * Reset {@link SubscriberAssessment} initialization time to indicate Subscriber is due for assessment.
+	 * 
+	 * @param subscriber
+	 */
+	@TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
+	public void resetSubscriberAssessmentInitTime(Subscriber subscriber) {
+		// TODO Auto-generated method stub
+		
+		SubscriberAssessment subscriberAssessment = subscriber.getAssessment();
+		if (subscriberAssessment == null)
+			return;
+		
+		subscriberAssessment.setAssessmentInitTime(Timestamp.valueOf(LocalDateTime.now()));
+		update(subscriberAssessment);
 	}
 	
 	/**
