@@ -19,6 +19,7 @@ import com.nano.jpa.enums.PayType;
 import com.nano.jpa.enums.TradeType;
 import com.nano.vou.jaxb.CDRVou;
 import com.nano.vou.jaxb.CDRVouMesh;
+import com.nano.vou.tools.JmsManager;
 import com.nano.vou.tools.QueryManager;
 
 /**
@@ -36,6 +37,9 @@ public class VouHandler {
 	
 	@Inject
 	private QueryManager queryManager ;
+	
+	@Inject
+	private JmsManager jmsManager ;
 
 	/**
 	 * Process VOU data with optimized map message object
@@ -103,6 +107,9 @@ public class VouHandler {
 
 		queryManager.createNewSubscriberHistoryData(cardFaceValue, 
 				postpaidBalance, postpaidBalanceBefore, prepaidBalance, prepaidBalanceBefore, rechargeForPostpaid, rechargeForPrepaid, mapMessage, tradeType, subscriber);
+		
+		queryManager.resetSubscriberAssessmentInitTime(subscriber);
+		jmsManager.queueMsisdnForRiskAssessment(subscriber.getMsisdn());
 
 		return true;
 	}
