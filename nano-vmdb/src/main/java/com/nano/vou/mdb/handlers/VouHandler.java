@@ -2,7 +2,6 @@ package com.nano.vou.mdb.handlers;
 
 import java.math.BigDecimal;
 import java.sql.Timestamp;
-import java.util.Calendar;
 import java.util.List;
 
 import javax.ejb.Stateless;
@@ -10,6 +9,7 @@ import javax.inject.Inject;
 import javax.jms.JMSException;
 import javax.jms.MapMessage;
 
+import org.jboss.ejb3.annotation.Clustered;
 import org.jboss.logging.Logger;
 
 import com.nano.jpa.entity.Subscriber;
@@ -19,6 +19,7 @@ import com.nano.jpa.enums.PayType;
 import com.nano.jpa.enums.TradeType;
 import com.nano.vou.jaxb.CDRVou;
 import com.nano.vou.jaxb.CDRVouMesh;
+import com.nano.vou.tools.JmsManager;
 import com.nano.vou.tools.QueryManager;
 
 /**
@@ -28,6 +29,7 @@ import com.nano.vou.tools.QueryManager;
  *
  */
 
+@Clustered
 @Stateless
 public class VouHandler {
 	
@@ -35,6 +37,9 @@ public class VouHandler {
 	
 	@Inject
 	private QueryManager queryManager ;
+	
+	@Inject
+	private JmsManager jmsManager ;
 
 	/**
 	 * Process VOU data with optimized map message object
@@ -102,12 +107,15 @@ public class VouHandler {
 
 		queryManager.createNewSubscriberHistoryData(cardFaceValue, 
 				postpaidBalance, postpaidBalanceBefore, prepaidBalance, prepaidBalanceBefore, rechargeForPostpaid, rechargeForPrepaid, mapMessage, tradeType, subscriber);
+		
+		queryManager.resetSubscriberAssessmentInitTime(subscriber);
+		jmsManager.queueMsisdnForRiskAssessment(subscriber.getMsisdn());
 
 		return true;
 	}
 	
 	/**
-	 * Process vou mesh data.
+	 * Process VOU mesh data.
 	 *
 	 * @param cdrVouMesh
 	 * @return true if successful
@@ -167,14 +175,11 @@ public class VouHandler {
 
 		activeStatus = activeStatus != null ? activeStatus : ActiveStatus.ACTIVE;
 
-		SubscriberState currentState = new SubscriberState();
-		currentState.setActiveStatus(activeStatus);
-		currentState.setBlacklisted(blacklisted);
-		currentState.setCurrentBalance(currentBalance);
-		currentState.setLastUpdated(new Timestamp(Calendar.getInstance().getTime().getTime()));
-		currentState.setPayType(payType);
-
-		queryManager.createSubscriberSubscriberState(currentState, subscriber);
+		SubscriberState subscriberState = queryManager.getSubscriberStateByMsisdn(subscriber.getMsisdn());
+		if (subscriberState != null)
+			queryManager.updateSubscriberState(subscriberState, activeStatus, blacklisted, currentBalance, payType, subscriber.getMsisdn());
+		else
+			queryManager.createSubscriberState(activeStatus, blacklisted, currentBalance, payType, subscriber.getMsisdn());
 	}
 
 }

@@ -2,6 +2,8 @@ package com.nano.vou.tools;
 
 import java.math.BigDecimal;
 import java.sql.Timestamp;
+import java.time.LocalDateTime;
+import java.util.Calendar;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -34,6 +36,8 @@ import com.nano.jpa.entity.SubscriberHistory_;
 import com.nano.jpa.entity.SubscriberState;
 import com.nano.jpa.entity.SubscriberState_;
 import com.nano.jpa.entity.Subscriber_;
+import com.nano.jpa.entity.ras.SubscriberAssessment;
+import com.nano.jpa.enums.ActiveStatus;
 import com.nano.jpa.enums.LoanIndicator;
 import com.nano.jpa.enums.PayType;
 import com.nano.jpa.enums.TradeType;
@@ -65,7 +69,7 @@ public class QueryManager {
 	}
 	
 	/**
-	 * Fetch {@link SubscriberState} by msisdn.
+	 * Fetch {@link SubscriberState} by MSISDN.
 	 *
 	 * @param msisdn
 	 * @return {@link SubscriberState}
@@ -89,7 +93,7 @@ public class QueryManager {
 	}
 	
 	/**
-	 * Fetch {@link Subscriber} by msisdn property.
+	 * Fetch {@link Subscriber} by MSISDN property.
 	 * 
 	 * @param msisdn
 	 * @return {@link Subscriber}
@@ -113,7 +117,7 @@ public class QueryManager {
 	}
 	
 	/**
-	 * Fetch {@link SubscriberHistory} by msisdn and rechargeTime properties.
+	 * Fetch {@link SubscriberHistory} by MSISDN and rechargeTime properties.
 	 *
 	 * @param msisdn
 	 * @param timestamp
@@ -194,15 +198,13 @@ public class QueryManager {
 	 * 
 	 * @param subscriberState
 	 * @param subscriber
+	 * @param existingCurrentState
 	 */
-	@TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
 	public void createSubscriberSubscriberState(SubscriberState subscriberState, 
-			Subscriber subscriber) {
+			Subscriber subscriber, SubscriberState existingCurrentState) {
 
 		if (subscriberState == null || subscriber == null)
 			return;
-
-		SubscriberState existingCurrentState = getSubscriberStateByMsisdn(subscriber.getMsisdn());
 
 		if (existingCurrentState != null){
 			existingCurrentState.setActiveStatus(subscriberState.getActiveStatus());
@@ -219,9 +221,59 @@ public class QueryManager {
 	}
 	
 	/**
+	 * Update existing instance of {@link SubscriberState}.
+	 * 
+	 * @param subscriberState
+	 * @param activeStatus
+	 * @param blacklisted
+	 * @param currentBalance
+	 * @param payType
+	 * @param msisdn
+	 */
+	@TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
+	public void updateSubscriberState(SubscriberState subscriberState, 
+			ActiveStatus activeStatus, boolean blacklisted, 
+			BigDecimal currentBalance, PayType payType, 
+			String msisdn){
+		
+		subscriberState.setActiveStatus(activeStatus);
+		subscriberState.setBlacklisted(blacklisted);
+		subscriberState.setCurrentBalance(currentBalance);
+		subscriberState.setLastUpdated(new Timestamp(Calendar.getInstance().getTime().getTime()));
+		subscriberState.setPayType(payType);
+		
+		update(subscriberState);
+	}
+	
+	/**
+	 * Creates new {@link SubscriberState} and add to {@link PersistenceContext}.
+	 * 
+	 * @param activeStatus
+	 * @param blacklisted
+	 * @param currentBalance
+	 * @param payType
+	 * @param msisdn
+	 */
+	@TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
+	public void createSubscriberState(ActiveStatus activeStatus, 
+			boolean blacklisted, BigDecimal currentBalance, 
+			PayType payType, String msisdn){
+		
+		SubscriberState subscriberState = new SubscriberState();
+		subscriberState.setActiveStatus(activeStatus);
+		subscriberState.setBlacklisted(blacklisted);
+		subscriberState.setCurrentBalance(currentBalance);
+		subscriberState.setLastUpdated(new Timestamp(Calendar.getInstance().getTime().getTime()));
+		subscriberState.setPayType(payType);
+		subscriberState.setMsisdn(msisdn);
+		
+		create(subscriberState);
+	}
+	
+	/**
 	 * Creates or fetches a unique {@link Subscriber} record.
 	 *
-	 * @param msisdn the msisdn
+	 * @param msisdn
 	 * @return {@link Subscriber}
 	 */
 	@TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
@@ -241,10 +293,27 @@ public class QueryManager {
 	}
 	
 	/**
-	 * Format msisdn.
+	 * Reset {@link SubscriberAssessment} initialization time to indicate Subscriber is due for assessment.
+	 * 
+	 * @param subscriber
+	 */
+	@TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
+	public void resetSubscriberAssessmentInitTime(Subscriber subscriber) {
+		// TODO Auto-generated method stub
+		
+		SubscriberAssessment subscriberAssessment = subscriber.getAssessment();
+		if (subscriberAssessment == null)
+			return;
+		
+		subscriberAssessment.setAssessmentInitTime(Timestamp.valueOf(LocalDateTime.now()));
+		update(subscriberAssessment);
+	}
+	
+	/**
+	 * Format MSISDN.
 	 *
 	 * @param msisdn
-	 * @return formatted msisdn
+	 * @return formatted MSISDN
 	 */
 	public String formatMisisdn(String msisdn){
 		

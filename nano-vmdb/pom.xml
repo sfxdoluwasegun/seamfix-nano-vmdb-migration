@@ -21,7 +21,7 @@
 
     <groupId>com.nano.vou</groupId>
     <artifactId>nano-vmdb</artifactId>
-    <version>0.0.2</version>
+    <version>0.0.6-SNAPSHOT</version>
     <packaging>war</packaging>
     <name>WildFly Quickstarts: nano-vmdb</name>
     <description>A starter Java EE 7 webapp project for use on JBoss WildFly / WildFly, generated from the jboss-javaee6-webapp archetype</description>
@@ -55,8 +55,8 @@
         <version.war.plugin>2.5</version.war.plugin>
 
         <!-- maven-compiler-plugin -->
-        <maven.compiler.target>1.7</maven.compiler.target>
-        <maven.compiler.source>1.7</maven.compiler.source>
+        <maven.compiler.target>1.8</maven.compiler.target>
+        <maven.compiler.source>1.8</maven.compiler.source>
     </properties>
 
 
@@ -198,7 +198,7 @@
         <dependency>
         	<groupId>com.nano.jpa</groupId>
         	<artifactId>nano-jpa</artifactId>
-        	<version>0.0.7</version>
+        	<version>0.1.5-SNAPSHOT</version>
         </dependency>
         <dependency>
         	<groupId>org.jboss.ejb3</groupId>
@@ -210,6 +210,11 @@
         	<groupId>javax.jms</groupId>
         	<artifactId>javax.jms-api</artifactId>
         	<version>2.0.1</version>
+        </dependency>
+        <dependency>
+        	<groupId>commons-io</groupId>
+        	<artifactId>commons-io</artifactId>
+        	<version>2.5</version>
         </dependency>
     </dependencies>
 
@@ -233,10 +238,11 @@
                 <artifactId>wildfly-maven-plugin</artifactId>
                 <version>${version.wildfly.maven.plugin}</version>
                 <configuration>
-		      		<hostname>localhost</hostname>
-		      		<port>19990</port>
-		      		<username>seamfixadmin</username>
-		     		<password>*s3amf1x#</password>
+                	<skip>${skip.deploy}</skip>
+		      		<hostname>${wildfly.hostname}</hostname>
+					<port>${wildfly.port}</port>
+					<username>${wildfly.username}</username>
+					<password>${wildfly.password}</password>
 		     		<filename>vmdb.war</filename>
 		      	</configuration>
 		      	<executions>
