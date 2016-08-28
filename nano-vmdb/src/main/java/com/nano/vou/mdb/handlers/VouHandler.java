@@ -4,7 +4,10 @@ import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.util.List;
 
+import javax.ejb.Asynchronous;
 import javax.ejb.Stateless;
+import javax.ejb.TransactionAttribute;
+import javax.ejb.TransactionAttributeType;
 import javax.inject.Inject;
 import javax.jms.JMSException;
 import javax.jms.MapMessage;
@@ -47,7 +50,9 @@ public class VouHandler {
 	 * @param mapMessage
 	 * @return true if operation is successful
 	 */
-	public boolean processVouData(MapMessage mapMessage){
+	@Asynchronous
+	@TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
+	public void processVouData(MapMessage mapMessage){
 
 		Subscriber subscriber = null;
 
@@ -65,7 +70,7 @@ public class VouHandler {
 			subscriber = queryManager.createSubscriber(mapMessage.getString("chargingpartynumber"));
 
 			if (queryManager.getSubscriberHistoryBySubscriberAndRechargeTime(subscriber.getMsisdn(), new Timestamp(mapMessage.getLong("voutime"))) != null)
-				return true;
+				return ;
 
 			log.info("vouProcessing:" + mapMessage.getString("chargingpartynumber") + " time:" + new Timestamp(mapMessage.getLong("voutime")));
 
@@ -110,8 +115,6 @@ public class VouHandler {
 		
 		queryManager.resetSubscriberAssessmentInitTime(subscriber);
 		jmsManager.queueMsisdnForRiskAssessment(subscriber.getMsisdn());
-
-		return true;
 	}
 	
 	/**
