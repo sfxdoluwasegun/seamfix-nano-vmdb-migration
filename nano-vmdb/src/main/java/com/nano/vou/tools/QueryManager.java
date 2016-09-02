@@ -50,7 +50,7 @@ import com.nano.jpa.enums.TradeType;
  */
 
 @Singleton
-@AccessTimeout(unit = TimeUnit.MINUTES, value = 3)
+@AccessTimeout(unit = TimeUnit.MINUTES, value = 7)
 @ConcurrencyManagement(ConcurrencyManagementType.CONTAINER)
 @TransactionManagement(TransactionManagementType.CONTAINER)
 @Lock(LockType.WRITE)
