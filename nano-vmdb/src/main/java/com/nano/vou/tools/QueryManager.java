@@ -30,6 +30,8 @@ import javax.persistence.criteria.Root;
 
 import org.jboss.logging.Logger;
 
+import com.nano.jpa.entity.Settings;
+import com.nano.jpa.entity.Settings_;
 import com.nano.jpa.entity.Subscriber;
 import com.nano.jpa.entity.SubscriberHistory;
 import com.nano.jpa.entity.SubscriberHistory_;
@@ -40,6 +42,7 @@ import com.nano.jpa.entity.ras.SubscriberAssessment;
 import com.nano.jpa.enums.ActiveStatus;
 import com.nano.jpa.enums.LoanIndicator;
 import com.nano.jpa.enums.PayType;
+import com.nano.jpa.enums.SettingType;
 import com.nano.jpa.enums.TradeType;
 
 /**
@@ -66,6 +69,56 @@ public class QueryManager {
 	@PostConstruct
 	public void init(){
 		criteriaBuilder = entityManager.getCriteriaBuilder();
+	}
+	
+	/**
+	 * Fetch {@link Settings} by name property.
+	 * 
+	 * @param name
+	 * @return
+	 */
+	public Settings getSettingsByName(String name){
+
+		CriteriaQuery<Settings> criteriaQuery = criteriaBuilder.createQuery(Settings.class);
+		Root<Settings> root = criteriaQuery.from(Settings.class);
+
+		criteriaQuery.select(root);
+		criteriaQuery.where(criteriaBuilder.equal(root.get(Settings_.name), name));
+
+		try {
+			return entityManager.createQuery(criteriaQuery).getSingleResult();
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			log.error("No Setting instance found with name:" + name);
+		}
+
+		return null;
+	}
+	
+	/**
+	 * Create a new Setting instance or return existing.
+	 * 
+	 * @param name
+	 * @param value
+	 * @param description
+	 * @param settingType
+	 * @return {@link Settings}
+	 */
+	public Settings createSettings(String name, 
+			String value, String description, SettingType settingType){
+
+		Settings settings = getSettingsByName(name);
+
+		if (settings != null)
+			return settings;
+
+		settings = new Settings();
+		settings.setDescription(description);
+		settings.setName(name);
+		settings.setType(settingType);
+		settings.setValue(value);
+
+		return (Settings) create(settings);
 	}
 	
 	/**
