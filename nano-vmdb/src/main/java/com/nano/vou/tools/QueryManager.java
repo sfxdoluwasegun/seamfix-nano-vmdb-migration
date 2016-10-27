@@ -5,19 +5,10 @@ import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.Calendar;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
-
 import javax.annotation.PostConstruct;
-import javax.ejb.AccessTimeout;
-import javax.ejb.ConcurrencyManagement;
-import javax.ejb.ConcurrencyManagementType;
-import javax.ejb.Lock;
-import javax.ejb.LockType;
-import javax.ejb.Singleton;
+import javax.ejb.Stateless;
 import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
-import javax.ejb.TransactionManagement;
-import javax.ejb.TransactionManagementType;
 import javax.jms.JMSException;
 import javax.jms.MapMessage;
 import javax.persistence.EntityManager;
@@ -30,6 +21,8 @@ import javax.persistence.criteria.Root;
 
 import org.jboss.logging.Logger;
 
+import com.nano.jpa.entity.Settings;
+import com.nano.jpa.entity.Settings_;
 import com.nano.jpa.entity.Subscriber;
 import com.nano.jpa.entity.SubscriberHistory;
 import com.nano.jpa.entity.SubscriberHistory_;
@@ -40,6 +33,7 @@ import com.nano.jpa.entity.ras.SubscriberAssessment;
 import com.nano.jpa.enums.ActiveStatus;
 import com.nano.jpa.enums.LoanIndicator;
 import com.nano.jpa.enums.PayType;
+import com.nano.jpa.enums.SettingType;
 import com.nano.jpa.enums.TradeType;
 
 /**
@@ -49,11 +43,7 @@ import com.nano.jpa.enums.TradeType;
  *
  */
 
-@Singleton
-@AccessTimeout(unit = TimeUnit.MINUTES, value = 7)
-@ConcurrencyManagement(ConcurrencyManagementType.CONTAINER)
-@TransactionManagement(TransactionManagementType.CONTAINER)
-@Lock(LockType.WRITE)
+@Stateless
 public class QueryManager {
 	
 	private Logger log = Logger.getLogger(getClass());
@@ -66,6 +56,56 @@ public class QueryManager {
 	@PostConstruct
 	public void init(){
 		criteriaBuilder = entityManager.getCriteriaBuilder();
+	}
+	
+	/**
+	 * Fetch {@link Settings} by name property.
+	 * 
+	 * @param name
+	 * @return
+	 */
+	public Settings getSettingsByName(String name){
+
+		CriteriaQuery<Settings> criteriaQuery = criteriaBuilder.createQuery(Settings.class);
+		Root<Settings> root = criteriaQuery.from(Settings.class);
+
+		criteriaQuery.select(root);
+		criteriaQuery.where(criteriaBuilder.equal(root.get(Settings_.name), name));
+
+		try {
+			return entityManager.createQuery(criteriaQuery).getSingleResult();
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			log.error("No Setting instance found with name:" + name);
+		}
+
+		return null;
+	}
+	
+	/**
+	 * Create a new Setting instance or return existing.
+	 * 
+	 * @param name
+	 * @param value
+	 * @param description
+	 * @param settingType
+	 * @return {@link Settings}
+	 */
+	public Settings createSettings(String name, 
+			String value, String description, SettingType settingType){
+
+		Settings settings = getSettingsByName(name);
+
+		if (settings != null)
+			return settings;
+
+		settings = new Settings();
+		settings.setDescription(description);
+		settings.setName(name);
+		settings.setType(settingType);
+		settings.setValue(value);
+
+		return (Settings) create(settings);
 	}
 	
 	/**
