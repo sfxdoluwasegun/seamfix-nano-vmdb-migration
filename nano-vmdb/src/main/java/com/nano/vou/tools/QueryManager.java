@@ -14,6 +14,7 @@ import javax.jms.MapMessage;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
+import javax.persistence.StoredProcedureQuery;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.JoinType;
@@ -200,7 +201,6 @@ public class QueryManager {
 	 * @param subscriber
 	 * @return created {@link SubscriberHistory} data
 	 */
-	@TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
 	public SubscriberHistory createNewSubscriberHistoryData(BigDecimal cardFaceValue, 
 			BigDecimal postpaidBalance, BigDecimal postpaidBalanceBefore, BigDecimal prepaidBalance, BigDecimal prepaidBalanceBefore, 
 			BigDecimal rechargeForPostpaid, BigDecimal rechargeForPrepaid, MapMessage mapMessage, TradeType tradeType, Subscriber subscriber) {
@@ -283,6 +283,32 @@ public class QueryManager {
 		subscriberState.setPayType(payType);
 		
 		update(subscriberState);
+	}
+	
+	/**
+	 * Creates new {@link SubscriberState} and add to {@link PersistenceContext}.
+	 * 
+	 * @param activeStatus
+	 * @param blacklisted
+	 * @param currentBalance
+	 * @param payType
+	 * @param msisdn
+	 */
+	@TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
+	public void createOrUpdateSubscriberState(ActiveStatus activeStatus, 
+			boolean blacklisted, BigDecimal currentBalance, 
+			PayType payType, String msisdn){
+		
+		StoredProcedureQuery storedProcedureQuery = entityManager.createNamedStoredProcedureQuery("createOrUpdateSubscriberState");
+		
+		storedProcedureQuery.setParameter("activeStat", activeStatus.name());
+		storedProcedureQuery.setParameter("blacklist", blacklisted);
+		storedProcedureQuery.setParameter("currentBal", currentBalance);
+		storedProcedureQuery.setParameter("timesta", Timestamp.valueOf(LocalDateTime.now()));
+		storedProcedureQuery.setParameter("payTyp", payType.name());
+		storedProcedureQuery.setParameter("msisd", msisdn);
+		
+		storedProcedureQuery.execute();
 	}
 	
 	/**

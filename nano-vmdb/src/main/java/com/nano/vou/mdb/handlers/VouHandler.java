@@ -16,7 +16,6 @@ import org.jboss.ejb3.annotation.Clustered;
 import org.jboss.logging.Logger;
 
 import com.nano.jpa.entity.Subscriber;
-import com.nano.jpa.entity.SubscriberState;
 import com.nano.jpa.enums.ActiveStatus;
 import com.nano.jpa.enums.PayType;
 import com.nano.jpa.enums.TradeType;
@@ -112,10 +111,15 @@ public class VouHandler {
 			log.error("", e);
 		}
 
-		updateSubscriberState(prepaidBalance, postpaidBalance, mapMessage, subscriber);
-
 		queryManager.createNewSubscriberHistoryData(cardFaceValue, 
 				postpaidBalance, postpaidBalanceBefore, prepaidBalance, prepaidBalanceBefore, rechargeForPostpaid, rechargeForPrepaid, mapMessage, tradeType, subscriber);
+		
+		try {
+			updateSubscriberState(prepaidBalance, postpaidBalance, mapMessage, subscriber);
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			log.error("", e);
+		}
 		
 		queryManager.resetSubscriberAssessmentInitTime(subscriber);
 		
@@ -184,11 +188,7 @@ public class VouHandler {
 
 		activeStatus = activeStatus != null ? activeStatus : ActiveStatus.ACTIVE;
 
-		SubscriberState subscriberState = queryManager.getSubscriberStateByMsisdn(subscriber.getMsisdn());
-		if (subscriberState != null)
-			queryManager.updateSubscriberState(subscriberState, activeStatus, blacklisted, currentBalance, payType, subscriber.getMsisdn());
-		else
-			queryManager.createSubscriberState(activeStatus, blacklisted, currentBalance, payType, subscriber.getMsisdn());
+		queryManager.createOrUpdateSubscriberState(activeStatus, blacklisted, currentBalance, payType, subscriber.getMsisdn());
 	}
 
 }
