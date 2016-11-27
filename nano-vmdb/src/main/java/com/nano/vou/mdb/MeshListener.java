@@ -12,7 +12,7 @@ import org.jboss.ejb3.annotation.ResourceAdapter;
 import org.jboss.logging.Logger;
 
 import com.nano.vou.jaxb.CDRVouMesh;
-import com.nano.vou.mdb.handlers.VouHandler;
+import com.nano.vou.mdb.handlers.VouDataHandler;
 
 /**
  * The listener interface for receiving CDRVMesh events.
@@ -36,8 +36,9 @@ public class MeshListener implements MessageListener {
 	private Logger log = Logger.getLogger(getClass());
 	
 	@Inject
-	private VouHandler vouHandler ;
+	private VouDataHandler vouDataHandler ;
 
+	@SuppressWarnings("deprecation")
 	@Override
 	public void onMessage(Message message) {
 		// TODO Auto-generated method stub
@@ -46,7 +47,7 @@ public class MeshListener implements MessageListener {
 		
 		try {
 			cdrVouMesh = (CDRVouMesh) ((ObjectMessage) message).getObject();
-			vouHandler.processVouMeshData(cdrVouMesh);
+			vouDataHandler.processVouMeshData(cdrVouMesh);
 		} catch (JMSException e) {
 			// TODO Auto-generated catch block
 			log.error("", e);
