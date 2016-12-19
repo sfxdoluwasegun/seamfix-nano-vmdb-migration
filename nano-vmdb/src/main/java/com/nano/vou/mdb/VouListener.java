@@ -31,7 +31,7 @@ import com.nano.vou.tools.DataExecutorManager;
 @MessageDriven(mappedName = "queue/Vou", activationConfig = {
 		@ActivationConfigProperty(propertyName = "destinationType", propertyValue = "javax.jms.Queue"), 
 		@ActivationConfigProperty(propertyName="destination", propertyValue="queue/Vou"), 
-		@ActivationConfigProperty(propertyName = "maxSessions", propertyValue = "100"), 
+		@ActivationConfigProperty(propertyName = "maxSessions", propertyValue = "200"), 
 		@ActivationConfigProperty(propertyName = "enableBatch", propertyValue = "true"), 
 		@ActivationConfigProperty(propertyName = "maxMessagesPerBatch", propertyValue = "500"), 
 		@ActivationConfigProperty(propertyName = "useRAManagedTransaction", propertyValue = "true"), 
