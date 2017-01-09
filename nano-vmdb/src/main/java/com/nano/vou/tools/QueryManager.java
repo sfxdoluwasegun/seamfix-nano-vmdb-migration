@@ -9,8 +9,6 @@ import javax.annotation.PostConstruct;
 import javax.ejb.Stateless;
 import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
-import javax.jms.JMSException;
-import javax.jms.MapMessage;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
@@ -196,39 +194,47 @@ public class QueryManager {
 	 * @param prepaidBalanceBefore
 	 * @param rechargeForPostpaid
 	 * @param rechargeForPrepaid
-	 * @param mapMessage
 	 * @param tradeType
 	 * @param subscriber
+	 * @param currentuserstate 
+	 * @param voutime 
+	 * @param transistionid 
+	 * @param voucherbatchnumber 
+	 * @param vouchersequence 
+	 * @param olduserstate 
+	 * @param paytype 
+	 * @param loanindicator 
 	 * @return created {@link SubscriberHistory} data
 	 */
+	@TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
 	public SubscriberHistory createNewSubscriberHistoryData(BigDecimal cardFaceValue, 
 			BigDecimal postpaidBalance, BigDecimal postpaidBalanceBefore, BigDecimal prepaidBalance, BigDecimal prepaidBalanceBefore, 
-			BigDecimal rechargeForPostpaid, BigDecimal rechargeForPrepaid, MapMessage mapMessage, TradeType tradeType, Subscriber subscriber) {
+			BigDecimal rechargeForPostpaid, BigDecimal rechargeForPrepaid, TradeType tradeType, Subscriber subscriber, 
+			String currentuserstate, Long voutime, 
+			String transistionid, String voucherbatchnumber, String vouchersequence, String olduserstate, String paytype, 
+			Integer loanindicator) {
 
 		SubscriberHistory subscriberHistory = null;
-		try {
-			subscriberHistory = new SubscriberHistory();
-			subscriberHistory.setCardFaceValue(cardFaceValue);
-			subscriberHistory.setCurrentUserState(mapMessage.getString("currentuserstate"));
-			subscriberHistory.setLoanIndicator(LoanIndicator.fromCode(mapMessage.getInt("loanindicator")));
-			subscriberHistory.setMsisdn(subscriber.getMsisdn());
-			subscriberHistory.setOldUserState(mapMessage.getString("olduserstate"));
-			subscriberHistory.setPayType(PayType.fromCode(mapMessage.getString("paytype")));
-			subscriberHistory.setPostpaidBalance(postpaidBalance);
-			subscriberHistory.setPostpaidBalanceBefore(postpaidBalanceBefore);
-			subscriberHistory.setPrepaidBalance(prepaidBalance);
-			subscriberHistory.setPrepaidBalanceBefore(prepaidBalanceBefore);
-			subscriberHistory.setRechargeForPostpaid(rechargeForPostpaid);
-			subscriberHistory.setRechargeForPrepaid(rechargeForPrepaid);
-			subscriberHistory.setRechargeTime(new Timestamp(mapMessage.getLong("voutime")));
-			subscriberHistory.setTradeType(tradeType);
-			subscriberHistory.setTransactionId(mapMessage.getString("transistionid"));
-			subscriberHistory.setVoucherBatchNumber(mapMessage.getString("voucherbatchnumber"));
-			subscriberHistory.setVoucherSequence(mapMessage.getString("vouchersequence"));
-		} catch (JMSException e) {
-			// TODO Auto-generated catch block
-			log.warn("", e);
-		}
+		subscriberHistory = new SubscriberHistory();
+		subscriberHistory.setCardFaceValue(cardFaceValue);
+		subscriberHistory.setCurrentUserState(currentuserstate);
+		subscriberHistory.setMsisdn(subscriber.getMsisdn());
+		subscriberHistory.setOldUserState(olduserstate);
+		subscriberHistory.setPayType(PayType.fromCode(paytype));
+		subscriberHistory.setPostpaidBalance(postpaidBalance);
+		subscriberHistory.setPostpaidBalanceBefore(postpaidBalanceBefore);
+		subscriberHistory.setPrepaidBalance(prepaidBalance);
+		subscriberHistory.setPrepaidBalanceBefore(prepaidBalanceBefore);
+		subscriberHistory.setRechargeForPostpaid(rechargeForPostpaid);
+		subscriberHistory.setRechargeForPrepaid(rechargeForPrepaid);
+		subscriberHistory.setRechargeTime(new Timestamp(voutime));
+		subscriberHistory.setTradeType(tradeType);
+		subscriberHistory.setTransactionId(transistionid);
+		subscriberHistory.setVoucherBatchNumber(voucherbatchnumber);
+		subscriberHistory.setVoucherSequence(vouchersequence);
+		
+		if (loanindicator != -1)
+			subscriberHistory.setLoanIndicator(LoanIndicator.fromCode(loanindicator));
 
 		return (SubscriberHistory) create(subscriberHistory);
 	}

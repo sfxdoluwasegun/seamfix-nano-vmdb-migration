@@ -1,9 +1,14 @@
 package com.nano.vou.tools;
 
+import java.util.concurrent.TimeUnit;
+
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import javax.annotation.Resource;
-import javax.ejb.Stateless;
+import javax.ejb.AccessTimeout;
+import javax.ejb.ConcurrencyManagement;
+import javax.ejb.ConcurrencyManagementType;
+import javax.ejb.Singleton;
 import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
 import javax.jms.Connection;
@@ -25,22 +30,26 @@ import org.jboss.logging.Logger;
  *
  */
 
-@Stateless
+@Singleton
+@ConcurrencyManagement(ConcurrencyManagementType.CONTAINER)
+@AccessTimeout(unit = TimeUnit.MINUTES, value = 5)
 public class JmsManager {
-	
+
 	private Logger log = Logger.getLogger(getClass());
 
 	private Connection connection ;
 	private Session session ;
 
+
 	@Resource(lookup = "java:/AmqConnectionFactory")
 	private ConnectionFactory connectionFactory ;
+
 	
 	@Resource(lookup = "java:/jms/queue/AgileRas")
 	private Queue rasQueue ;
 
 	@PostConstruct
-	public void init(){
+	public void start(){
 		try {
 			connection = connectionFactory.createConnection();
 			session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
@@ -53,7 +62,7 @@ public class JmsManager {
 	}
 
 	@PreDestroy
-	public void cleanup(){
+	public void end(){
 		closeSession(session);
 		closeConnection(connection);
 	}
